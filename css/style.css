@@ -1,11 +1,40 @@
-ul{
+ul {
     display: flex;
+}
+
+ul li {
+    margin: 2em;
+}
+
+ul li figure {
+    cursor: pointer;
 }
 
 img.images {
     display: inline-block;
-    width: 500px;
-    height: 500px;
-    margin: 30px;
-    border: 1px solid black
+    max-width: 100%;
+    max-height: 250px;
+    /* margin: 30px; */
+    /* border: 1px solid black */
+}
+
+figure {
+    border: thin #ccc solid;
+    display: flex;
+    flex-flow: column;
+    padding: 5px;
+    max-width: 300px;
+    margin: auto;
+}
+
+figcaption {
+    background-color: #222;
+    color: #fff;
+    font: italic smaller sans-serif;
+    padding: 0.3em;
+    text-align: center;
+}
+
+article.report {
+    padding: 1em;
 }
