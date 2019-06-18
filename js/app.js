@@ -76,34 +76,33 @@ function renderReport(){
   for(var i = 0;i<ProductImage.list.length;i++){
     var product = ProductImage.list[i];
     console.log(`description: ${product.caption}, click count: ${product.clickCount}, display count: ${product.displayTimes}, click percent: ${product.calculateClickPercent()}`);
-
   }
 }
 
-
-
 function setUp (){
-  new ProductImage ('./img/bag.jpg', 'R2D2 bag');
-  new ProductImage ('./img/banana.jpg', 'Banana');
-  new ProductImage ('./img/bathroom.jpg', 'iPoop' );
-  new ProductImage ('./img/boots.jpg', 'Toe-less boots');
-  new ProductImage ('./img/breakfast.jpg', 'easy bake');
-  new ProductImage ('./img/bubblegum.jpg', 'ikea gum');
-  new ProductImage ('./img/chair.jpg', 'punish chair');
-  new ProductImage ('./img/cthulhu.jpg', 'cthulhu');
-  new ProductImage ('./img/dog-duck.jpg', 'dog-duck');
-  new ProductImage ('./img/dragon.jpg', 'dragon meat');
-  new ProductImage ('./img/pen.jpg', 'food pen');
-  new ProductImage ('./img/pet-sweep.jpg', 'pet-sweep');
-  new ProductImage ('./img/scissors.jpg', 'pizaa scissors');
-  new ProductImage ('./img/shark.jpg', 'jaws sleeping bag');
-  new ProductImage ('./img/sweep.png', 'baby roomba');
-  new ProductImage ('./img/tauntaun.jpg', 'tauntaun');
-  new ProductImage ('./img/unicorn.jpg', 'unicorn meat');
-  new ProductImage ('./img/usb.gif', 'usb');
-  new ProductImage ('./img/water-can.jpg', 'water can');
-  new ProductImage ('./img/wine-glass.jpg', 'useless wine glass');
+  new ProductImage('../img/bag.jpg', 'R2D2 bag');
+  new ProductImage('../img/banana.jpg', 'Banana');
+  new ProductImage('../img/bathroom.jpg', 'iPoop' );
+  new ProductImage('../img/boots.jpg', 'Toe-less boots');
+  new ProductImage('../img/breakfast.jpg', 'easy bake');
+  new ProductImage('../img/bubblegum.jpg', 'ikea gum');
+  new ProductImage('../img/chair.jpg', 'punish chair');
+  new ProductImage('../img/cthulhu.jpg', 'cthulhu');
+  new ProductImage('../img/dog-duck.jpg', 'dog-duck');
+  new ProductImage('../img/dragon.jpg', 'dragon meat');
+  new ProductImage('../img/pen.jpg', 'food pen');
+  new ProductImage('../img/pet-sweep.jpg', 'pet-sweep');
+  new ProductImage('../img/scissors.jpg', 'pizaa scissors');
+  new ProductImage('../img/shark.jpg', 'jaws sleeping bag');
+  new ProductImage('../img/sweep.png', 'baby roomba');
+  new ProductImage('../img/tauntaun.jpg', 'tauntaun');
+  new ProductImage('../img/unicorn.jpg', 'unicorn meat');
+  new ProductImage('../img/usb.gif', 'usb');
+  new ProductImage('../img/water-can.jpg', 'water can');
+  new ProductImage('../img/wine-glass.jpg', 'useless wine glass');
+
   renderImages();
+
   image1.addEventListener('click', clickEventListener);
   image2.addEventListener('click', clickEventListener);
   image3.addEventListener('click', clickEventListener);
