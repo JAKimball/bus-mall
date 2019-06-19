@@ -1,5 +1,7 @@
 'use strict';
 
+var numImages = 3;
+var images = [];
 var image1 = document.getElementById('image1');
 var image2 = document.getElementById('image2');
 var image3 = document.getElementById('image3');
@@ -19,7 +21,7 @@ Product.list = [];
 
 Product.prototype.calculateClickPercent = function () {
   try {
-    return (this.clickCount / this.displayTimes);
+    return Math.round((this.clickCount / this.displayTimes) * 100);
   } catch (exception) {
     return (NaN);
   }
@@ -31,49 +33,44 @@ function renderImageAndCaption(element, productIndex) {
   element.nextSibling.nextSibling.textContent = product.caption;
 }
 
-function renderImages() {
-  displayedProducts[0] = (randomProductIndex());
-  displayedProducts[1] = (randomProductIndex());
-  displayedProducts[2] = (randomProductIndex());
+function renderProductImages() {
+  displayedProducts[0] = (nextRandomProductIndex());
+  displayedProducts[1] = (nextRandomProductIndex());
+  displayedProducts[2] = (nextRandomProductIndex());
   renderImageAndCaption(image1, displayedProducts[0]);
   renderImageAndCaption(image2, displayedProducts[1]);
   renderImageAndCaption(image3, displayedProducts[2]);
-  while (productHistory.length > 3) {
+  while (productHistory.length > numImages) {
     productHistory.shift();
   }
 }
 
-function randomProductIndex() {
+function nextRandomProductIndex() {
   var duplicated = true;
   while (duplicated) {
-    duplicated = false;
     var r = Math.floor(Math.random() * Product.list.length);
-    for (var i = 0; i < productHistory.length; i++) {
-      if (r === productHistory[i]) {
-        duplicated = true;
-        break;
-      }
-    }
+    duplicated = productHistory.includes(r);
   }
   productHistory.push(r);
   Product.list[r].displayTimes++;
   return r;
 }
 
-function clickEventListener() {
+function handleProductImageClick(event) {
   var productIndex = displayedProducts[this.id[5] - 1];
   var selectedProduct = Product.list[productIndex];
   selectedProduct.clickCount++;
   totalClickCount--;
+
   console.log(this.id, this.id[5], productIndex, Product.list[productIndex], totalClickCount);
 
   if (totalClickCount === 0) {
-    image1.removeEventListener('click', clickEventListener);
-    image2.removeEventListener('click', clickEventListener);
-    image3.removeEventListener('click', clickEventListener);
+    image1.removeEventListener('click', handleProductImageClick);
+    image2.removeEventListener('click', handleProductImageClick);
+    image3.removeEventListener('click', handleProductImageClick);
     renderReport();
   } else {
-    renderImages();
+    renderProductImages();
   }
 }
 
@@ -95,14 +92,81 @@ ElementBuilder.prototype.addElement = function (tagName, Text, className) {
   return newElement;
 };
 
+function randomColor() {
+  return `#${Math.floor((Math.random() * 16777216)).toString(16)}`;
+}
+
 function renderReport() {
-  var eBReport = new ElementBuilder( document.getElementById('ReportElement'));
+  var eBReport = new ElementBuilder(document.getElementById('ReportElement'));
   eBReport.element.innerHTML = '';
   for (var i = 0; i < Product.list.length; i++) {
     var product = Product.list[i];
     console.log(`description: ${product.caption}, click count: ${product.clickCount}, display count: ${product.displayTimes}, click percent: ${product.calculateClickPercent()}`);
     eBReport.addElement('p', `${product.clickCount} votes for ${product.caption}.`);
   }
+
+  var canvas = document.getElementById('ReportCanvas');
+  var ctx = canvas.getContext('2d');
+  var labels = [];
+  var votePctData = [];
+  var colors = [];
+
+  Product.list.sort(function (a, b) {
+    // calculateClickPercent can return NaN so remap NaN to -1 so these sort to the end.
+    function negIfNaN(n) {
+      if (isNaN(n)) {
+        n = -1;
+      }
+      return n;
+    }
+
+    return negIfNaN(b.calculateClickPercent()) - negIfNaN(a.calculateClickPercent());
+  });
+
+  for (var i = 0; i < Product.list.length; i++) {
+    var product = Product.list[i];
+    labels.push(product.caption);
+    votePctData.push(product.calculateClickPercent());
+    colors.push(randomColor());
+  }
+  console.assert(false, 'We are here!');
+  console.log(ctx);
+  var myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '% Appearances Voted',
+        data: votePctData,
+        backgroundColor: colors,
+        borderWidth: 1
+      }],
+    },
+    options: {
+      responsive: false,
+      maintainAspectRatio: true,
+      scales: {
+        yAxes: [{
+          ticks: {
+            beginAtZero: true
+          }
+        }]
+      }
+    }
+  });
+  console.log(typeof myChart);
+}
+
+function setupProductImages() {
+
+}
+
+function setupEventHandlers() {
+
+}
+
+function shutdownEventHandlers() {
+
 }
 
 function setUp() {
@@ -127,11 +191,12 @@ function setUp() {
   new Product('../img/water-can.jpg', 'water can');
   new Product('../img/wine-glass.jpg', 'useless wine glass');
 
-  renderImages();
+  setupProductImages();
+  renderProductImages();
 
-  image1.addEventListener('click', clickEventListener);
-  image2.addEventListener('click', clickEventListener);
-  image3.addEventListener('click', clickEventListener);
+  image1.addEventListener('click', handleProductImageClick);
+  image2.addEventListener('click', handleProductImageClick);
+  image3.addEventListener('click', handleProductImageClick);
 }
 
 

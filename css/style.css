@@ -38,3 +38,8 @@ figcaption {
 article.report {
     padding: 1em;
 }
+
+canvas {
+    background: #fff;
+    border: 1px solid black;
+}
