@@ -6,9 +6,45 @@ var image1 = document.getElementById('image1');
 var image2 = document.getElementById('image2');
 var image3 = document.getElementById('image3');
 
+// TODO: Can move to local scope if refactored
 var productHistory = [];
+
 var displayedProducts = [];
+
+var 
 var totalClickCount = 25;
+// TODO: Display "Vote X of Y" on page
+
+/*
+We are recording the page state in local storage.  This includes:
+
+- The full product list as one entry per product
+  - Key: "Product-N" where N is the product ID
+  - Value: JSON of Product object
+- The displayedProducts array
+  - Key: displayedProducts
+  - Value: Array of product IDs
+- The totalClickCount value
+  - Key: totalClickCount
+  - Value: Number of clicks
+
+Product ID is defined as the products index into the Product.list array.
+*/
+
+function updateStoredState() {
+
+}
+
+// Caller to restoreStoredState() will see if we had success based on the return value:
+//   Return true if all needed state was recovered from local storage,
+//   false if not.
+function restoreStoredState() {
+  success = true;
+
+  
+
+  return success;
+}  
 
 function Product(filePath, caption) {
   this.filePath = filePath;
@@ -119,7 +155,6 @@ function renderReport() {
       }
       return n;
     }
-
     return negIfNaN(b.calculateClickPercent()) - negIfNaN(a.calculateClickPercent());
   });
 
@@ -148,7 +183,7 @@ function renderReport() {
       scales: {
         yAxes: [{
           ticks: {
-            beginAtZero: true
+            beginAtZero: false
           }
         }]
       }
