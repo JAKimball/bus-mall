@@ -1,12 +1,16 @@
 # bus-mall
 
+## Lab 11: Get started on BusMall
+
 - Driver: Corey Chang
 - Navigator: Jonathan Kimball
 - [User Stories](user_stories.md)
 
-## Using Local Storage to Preserve State
+## Lab 12: Add a chart to your BusMall app
 
-We are recording the page state in local storage.  This includes:
+## Lab 13: Add local storage to BusMall
+
+ Following each vote, we are recording the page state in local storage. This includes:
 
 - The full product list as one entry per product
   - Key: "Product-N" where N is the product ID
@@ -20,7 +24,9 @@ We are recording the page state in local storage.  This includes:
 
 Product ID is defined as the products index into the Product.list array.
 
-## Whiteboard
+Local storage is updated following each vote.
+
+## Whiteboards
 
 ![Image 1](wb-image-01.jpg)
 ![Image 2](wb-image-02.jpg)
