@@ -33,6 +33,12 @@ Product ID is defined as the products index into the Product.list array.
 Local storage is updated following each vote.
 */
 
+/**
+ *
+ *
+ * @param {*} aFilePath
+ * @param {*} aCaption
+ */
 function Product(aFilePath, aCaption) {
   this.productIndex = Product.list.push(this) - 1;
   this.filePath = aFilePath;
@@ -103,7 +109,6 @@ function handleProductImageClick(event) {
   var selectedProduct = Product.list[productIndex];
   selectedProduct.clickCount++;
   currentVoteCount++;
-  updateStoredState();
   Product.list[productIndex].updateProductState();
 
   console.log(this.id, this.id[5], productIndex, Product.list[productIndex], currentVoteCount);
@@ -115,6 +120,7 @@ function handleProductImageClick(event) {
     renderReport();
   } else {
     renderProductImages();
+    updateStoredState();
   }
 }
 
