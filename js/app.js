@@ -11,12 +11,12 @@ var productHistory = [];
 
 var displayedProducts = [];
 
-var 
-var totalClickCount = 25;
+var votesPerSession = 25;
+var currentVoteCount = 0;
 // TODO: Display "Vote X of Y" on page
 
 /*
-We are recording the page state in local storage.  This includes:
+Following each vote, we are recording the page state in local storage. This includes:
 
 - The full product list as one entry per product
   - Key: "Product-N" where N is the product ID
@@ -24,36 +24,36 @@ We are recording the page state in local storage.  This includes:
 - The displayedProducts array
   - Key: displayedProducts
   - Value: Array of product IDs
-- The totalClickCount value
-  - Key: totalClickCount
+- The currentVoteCount value
+  - Key: currentVoteCount
   - Value: Number of clicks
 
 Product ID is defined as the products index into the Product.list array.
+
+Local storage is updated following each vote.
 */
 
-function updateStoredState() {
-
-}
-
-// Caller to restoreStoredState() will see if we had success based on the return value:
-//   Return true if all needed state was recovered from local storage,
-//   false if not.
-function restoreStoredState() {
-  success = true;
-
-  
-
-  return success;
-}  
-
-function Product(filePath, caption) {
-  this.filePath = filePath;
-  this.caption = caption;
-  this.displayTimes = 0;
-  this.clickCount = 0;
-  Product.list.push(this);
+function Product(aFilePath, aCaption) {
+  this.productIndex = Product.list.push(this) - 1;
+  this.filePath = aFilePath;
+  this.caption = aCaption;
+  var lsProduct = localStorage.getItem(`Product-${this.productIndex}`);
+  if (lsProduct) {
+    var productRecord = JSON.parse(lsProduct);
+    this.displayTimes = productRecord.displayTimes;
+    this.clickCount = productRecord.clickCount;
+  } else {
+    this.displayTimes = 0;
+    this.clickCount = 0;
+    this.updateProductState();
+  }
 }
 Product.list = [];
+
+Product.prototype.updateProductState = function () {
+  var key = `Product-${this.productIndex}`;
+  localStorage.setItem(key, JSON.stringify(this));
+};
 
 Product.prototype.calculateClickPercent = function () {
   try {
@@ -69,10 +69,16 @@ function renderImageAndCaption(element, productIndex) {
   element.nextSibling.nextSibling.textContent = product.caption;
 }
 
-function renderProductImages() {
-  displayedProducts[0] = (nextRandomProductIndex());
-  displayedProducts[1] = (nextRandomProductIndex());
-  displayedProducts[2] = (nextRandomProductIndex());
+function renderProductImages(restore) {
+  if (restore) {
+    for (var i = 0; i < displayedProducts.length; i++) {
+      productHistory.push(displayedProducts[i]);
+    }
+  } else {
+    displayedProducts[0] = (nextRandomProductIndex());
+    displayedProducts[1] = (nextRandomProductIndex());
+    displayedProducts[2] = (nextRandomProductIndex());
+  }
   renderImageAndCaption(image1, displayedProducts[0]);
   renderImageAndCaption(image2, displayedProducts[1]);
   renderImageAndCaption(image3, displayedProducts[2]);
@@ -96,11 +102,13 @@ function handleProductImageClick(event) {
   var productIndex = displayedProducts[this.id[5] - 1];
   var selectedProduct = Product.list[productIndex];
   selectedProduct.clickCount++;
-  totalClickCount--;
+  currentVoteCount++;
+  updateStoredState();
+  Product.list[productIndex].updateProductState();
 
-  console.log(this.id, this.id[5], productIndex, Product.list[productIndex], totalClickCount);
+  console.log(this.id, this.id[5], productIndex, Product.list[productIndex], currentVoteCount);
 
-  if (totalClickCount === 0) {
+  if (currentVoteCount === votesPerSession) {
     image1.removeEventListener('click', handleProductImageClick);
     image2.removeEventListener('click', handleProductImageClick);
     image3.removeEventListener('click', handleProductImageClick);
@@ -192,7 +200,7 @@ function renderReport() {
   console.log(typeof myChart);
 }
 
-function setupProductImages() {
+function setupProductImages(restoringFromStorage) {
 
 }
 
@@ -204,7 +212,42 @@ function shutdownEventHandlers() {
 
 }
 
+// Save displayed product array and currentVoteCount to local storage.
+function updateStoredState() {
+  localStorage.setItem('displayedProducts', JSON.stringify(displayedProducts));
+  localStorage.setItem('currentVoteCount', JSON.stringify(currentVoteCount));
+}
+
+// Load displayed product array and currentVoteCount from local storage.
+// Caller to restoreStoredState() will see if we had success based on the return value:
+//   Return true if all needed state was recovered from local storage,
+//   false if not.
+function restoreStoredState() {
+  var success = true;
+
+  var lsStr = localStorage.getItem('displayedProducts');
+  if (!lsStr) {
+    displayedProducts = [];
+    return false;
+  }
+  displayedProducts = JSON.parse(lsStr);
+
+  lsStr = localStorage.getItem('currentVoteCount');
+  if (!lsStr) {
+    currentVoteCount = 0;
+    return false;
+  }
+  currentVoteCount = JSON.parse(lsStr);
+
+  return success;
+}
+
 function setUp() {
+  var restoringFromStorage = restoreStoredState();
+  if (restoringFromStorage) {
+    console.log('Found in LS!');
+  }
+
   new Product('../img/bag.jpg', 'R2D2 bag');
   new Product('../img/banana.jpg', 'Banana');
   new Product('../img/bathroom.jpg', 'iPoop');
@@ -226,13 +269,12 @@ function setUp() {
   new Product('../img/water-can.jpg', 'water can');
   new Product('../img/wine-glass.jpg', 'useless wine glass');
 
-  setupProductImages();
-  renderProductImages();
+  setupProductImages(restoringFromStorage);
+  renderProductImages(restoringFromStorage);
 
   image1.addEventListener('click', handleProductImageClick);
   image2.addEventListener('click', handleProductImageClick);
   image3.addEventListener('click', handleProductImageClick);
 }
-
 
 setUp();
