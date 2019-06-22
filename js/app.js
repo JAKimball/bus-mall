@@ -1,7 +1,7 @@
 'use strict';
 
 var numImages = 3;
-var images = [];
+var imageElements = [];
 var image1 = document.getElementById('image1');
 var image2 = document.getElementById('image2');
 var image3 = document.getElementById('image3');
@@ -33,6 +33,12 @@ Product ID is defined as the products index into the Product.list array.
 Local storage is updated following each vote.
 */
 
+/**
+ * Constructor for the Product object.
+ *
+ * @param {*} aFilePath Path and file name of the product image file.
+ * @param {*} aCaption Short product description for display as product image caption and chart label.
+ */
 function Product(aFilePath, aCaption) {
   this.productIndex = Product.list.push(this) - 1;
   this.filePath = aFilePath;
@@ -45,12 +51,16 @@ function Product(aFilePath, aCaption) {
   } else {
     this.displayTimes = 0;
     this.clickCount = 0;
-    this.updateProductState();
+    this.storeProductState();
   }
 }
 Product.list = [];
 
-Product.prototype.updateProductState = function () {
+/**
+ * Save the state of the Product object to the local store.
+ *
+ */
+Product.prototype.storeProductState = function () {
   var key = `Product-${this.productIndex}`;
   localStorage.setItem(key, JSON.stringify(this));
 };
@@ -63,30 +73,50 @@ Product.prototype.calculateClickPercent = function () {
   }
 };
 
+/**
+ * Displays the current set of products in the displayedProducts[] array.
+ *
+ */
+function renderProductImages() {
+  renderImageAndCaption(image1, displayedProducts[0]);
+  renderImageAndCaption(image2, displayedProducts[1]);
+  renderImageAndCaption(image3, displayedProducts[2]);
+}
+
+/**
+ * Used by the renderProductImages() function to do the actual DOM work to render an individual product image with caption.
+ *
+ * @param {*} element The <img> element to display the product image.
+ * @param {*} productIndex The ID of the product to display.
+ */
 function renderImageAndCaption(element, productIndex) {
   var product = Product.list[productIndex];
   element.src = product.filePath;
   element.nextSibling.nextSibling.textContent = product.caption;
 }
 
-function renderProductImages(restore) {
-  if (restore) {
-    for (var i = 0; i < displayedProducts.length; i++) {
-      productHistory.push(displayedProducts[i]);
-    }
-  } else {
-    displayedProducts[0] = (nextRandomProductIndex());
-    displayedProducts[1] = (nextRandomProductIndex());
-    displayedProducts[2] = (nextRandomProductIndex());
-  }
-  renderImageAndCaption(image1, displayedProducts[0]);
-  renderImageAndCaption(image2, displayedProducts[1]);
-  renderImageAndCaption(image3, displayedProducts[2]);
+/**
+ * Populates the displayedProducts[] array with a new random selection
+ * (excluding duplication of items in the current and previous sets.)
+ *
+ * This set is then preserved in local storage so that it may repopulate
+ * the displayedProducts[] array if the page is reloaded for any reason.
+ */
+function generateNextRandomSet() {
+  displayedProducts[0] = (nextRandomProductIndex());
+  displayedProducts[1] = (nextRandomProductIndex());
+  displayedProducts[2] = (nextRandomProductIndex());
   while (productHistory.length > numImages) {
     productHistory.shift();
   }
+  updateStoredState();
 }
 
+/**
+ * Used by the generateNextRandomSet() function to make the individual product image selections.
+ *
+ * @returns The ID of the selected product.
+ */
 function nextRandomProductIndex() {
   var duplicated = true;
   while (duplicated) {
@@ -103,19 +133,20 @@ function handleProductImageClick(event) {
   var selectedProduct = Product.list[productIndex];
   selectedProduct.clickCount++;
   currentVoteCount++;
-  updateStoredState();
-  Product.list[productIndex].updateProductState();
+  Product.list[productIndex].storeProductState();
 
   console.log(this.id, this.id[5], productIndex, Product.list[productIndex], currentVoteCount);
 
+
   if (currentVoteCount === votesPerSession) {
-    image1.removeEventListener('click', handleProductImageClick);
-    image2.removeEventListener('click', handleProductImageClick);
-    image3.removeEventListener('click', handleProductImageClick);
+    currentVoteCount = 0;
+    removeEventHandlers();
     renderReport();
   } else {
+    generateNextRandomSet();
     renderProductImages();
   }
+  updateStoredState();
 }
 
 // --- Global Report Rendering Functions ---
@@ -166,13 +197,12 @@ function renderReport() {
     return negIfNaN(b.calculateClickPercent()) - negIfNaN(a.calculateClickPercent());
   });
 
-  for (var i = 0; i < Product.list.length; i++) {
-    var product = Product.list[i];
+  for (i = 0; i < Product.list.length; i++) {
+    product = Product.list[i];
     labels.push(product.caption);
     votePctData.push(product.calculateClickPercent());
     colors.push(randomColor());
   }
-  console.assert(false, 'We are here!');
   console.log(ctx);
   var myChart = new Chart(ctx, {
     type: 'bar',
@@ -200,28 +230,45 @@ function renderReport() {
   console.log(typeof myChart);
 }
 
-function setupProductImages(restoringFromStorage) {
+function setupProductImages() {
 
 }
 
+/**
+ * Set up event handlers for all product images.
+ *
+ */
 function setupEventHandlers() {
-
+  image1.addEventListener('click', handleProductImageClick);
+  image2.addEventListener('click', handleProductImageClick);
+  image3.addEventListener('click', handleProductImageClick);
 }
 
-function shutdownEventHandlers() {
-
+/**
+ * Remove the event handlers from all product images.
+ *
+ */
+function removeEventHandlers() {
+  image1.removeEventListener('click', handleProductImageClick);
+  image2.removeEventListener('click', handleProductImageClick);
+  image3.removeEventListener('click', handleProductImageClick);
 }
 
-// Save displayed product array and currentVoteCount to local storage.
+/**
+ * Save displayed product array and currentVoteCount to local storage.
+ *
+ */
 function updateStoredState() {
   localStorage.setItem('displayedProducts', JSON.stringify(displayedProducts));
   localStorage.setItem('currentVoteCount', JSON.stringify(currentVoteCount));
 }
 
-// Load displayed product array and currentVoteCount from local storage.
-// Caller to restoreStoredState() will see if we had success based on the return value:
-//   Return true if all needed state was recovered from local storage,
-//   false if not.
+/**
+ * Load displayed product array and currentVoteCount from local storage.
+ * Caller to restoreStoredState() will see if we had success based on the return value:
+ *
+ * @returns Return true if all needed state was recovered from local storage, false if not.
+ */
 function restoreStoredState() {
   var success = true;
 
@@ -231,6 +278,9 @@ function restoreStoredState() {
     return false;
   }
   displayedProducts = JSON.parse(lsStr);
+  for (var i = 0; i < displayedProducts.length; i++) {
+    productHistory.push(displayedProducts[i]);
+  }
 
   lsStr = localStorage.getItem('currentVoteCount');
   if (!lsStr) {
@@ -244,37 +294,38 @@ function restoreStoredState() {
 
 function setUp() {
   var restoringFromStorage = restoreStoredState();
-  if (restoringFromStorage) {
-    console.log('Found in LS!');
+  console.log(`Found in LS: ${restoringFromStorage}`);
+  console.log(`currentVoteCount = ${currentVoteCount}`);
+
+  new Product('./img/bag.jpg', 'R2D2 bag');
+  new Product('./img/banana.jpg', 'Banana');
+  new Product('./img/bathroom.jpg', 'iPoop');
+  new Product('./img/boots.jpg', 'Toe-less boots');
+  new Product('./img/breakfast.jpg', 'easy bake');
+  new Product('./img/bubblegum.jpg', 'ikea gum');
+  new Product('./img/chair.jpg', 'punish chair');
+  new Product('./img/cthulhu.jpg', 'cthulhu');
+  new Product('./img/dog-duck.jpg', 'dog-duck');
+  new Product('./img/dragon.jpg', 'dragon meat');
+  new Product('./img/pen.jpg', 'food pen');
+  new Product('./img/pet-sweep.jpg', 'pet-sweep');
+  new Product('./img/scissors.jpg', 'pizza scissors');
+  new Product('./img/shark.jpg', 'jaws sleeping bag');
+  new Product('./img/sweep.png', 'baby roomba');
+  new Product('./img/tauntaun.jpg', 'tauntaun');
+  new Product('./img/unicorn.jpg', 'unicorn meat');
+  new Product('./img/usb.gif', 'usb');
+  new Product('./img/water-can.jpg', 'water can');
+  new Product('./img/wine-glass.jpg', 'useless wine glass');
+
+  setupProductImages();
+
+  if (currentVoteCount === 0) {
+    generateNextRandomSet();
   }
+  renderProductImages();
 
-  new Product('../img/bag.jpg', 'R2D2 bag');
-  new Product('../img/banana.jpg', 'Banana');
-  new Product('../img/bathroom.jpg', 'iPoop');
-  new Product('../img/boots.jpg', 'Toe-less boots');
-  new Product('../img/breakfast.jpg', 'easy bake');
-  new Product('../img/bubblegum.jpg', 'ikea gum');
-  new Product('../img/chair.jpg', 'punish chair');
-  new Product('../img/cthulhu.jpg', 'cthulhu');
-  new Product('../img/dog-duck.jpg', 'dog-duck');
-  new Product('../img/dragon.jpg', 'dragon meat');
-  new Product('../img/pen.jpg', 'food pen');
-  new Product('../img/pet-sweep.jpg', 'pet-sweep');
-  new Product('../img/scissors.jpg', 'pizaa scissors');
-  new Product('../img/shark.jpg', 'jaws sleeping bag');
-  new Product('../img/sweep.png', 'baby roomba');
-  new Product('../img/tauntaun.jpg', 'tauntaun');
-  new Product('../img/unicorn.jpg', 'unicorn meat');
-  new Product('../img/usb.gif', 'usb');
-  new Product('../img/water-can.jpg', 'water can');
-  new Product('../img/wine-glass.jpg', 'useless wine glass');
-
-  setupProductImages(restoringFromStorage);
-  renderProductImages(restoringFromStorage);
-
-  image1.addEventListener('click', handleProductImageClick);
-  image2.addEventListener('click', handleProductImageClick);
-  image3.addEventListener('click', handleProductImageClick);
+  setupEventHandlers();
 }
 
 setUp();
