@@ -172,14 +172,6 @@ function randomColor() {
 }
 
 function renderReport() {
-  var eBReport = new ElementBuilder(document.getElementById('ReportElement'));
-  eBReport.element.innerHTML = '';
-  for (var i = 0; i < Product.list.length; i++) {
-    var product = Product.list[i];
-    console.log(`description: ${product.caption}, click count: ${product.clickCount}, display count: ${product.displayTimes}, click percent: ${product.calculateClickPercent()}`);
-    eBReport.addElement('p', `${product.clickCount} votes for ${product.caption}.`);
-  }
-
   var canvas = document.getElementById('ReportCanvas');
   var ctx = canvas.getContext('2d');
   var labels = [];
@@ -197,8 +189,8 @@ function renderReport() {
     return negIfNaN(b.calculateClickPercent()) - negIfNaN(a.calculateClickPercent());
   });
 
-  for (i = 0; i < Product.list.length; i++) {
-    product = Product.list[i];
+  for (var i = 0; i < Product.list.length; i++) {
+    var product = Product.list[i];
     labels.push(product.caption);
     votePctData.push(product.calculateClickPercent());
     colors.push(randomColor());

@@ -1,5 +1,6 @@
 ul {
     display: flex;
+    margin: 0 auto;
 }
 
 ul li {
@@ -40,6 +41,8 @@ article.report {
 }
 
 canvas {
+    margin: 0 auto;
     background: #fff;
-    border: 1px solid black;
 }
+
+#ReportSection {}
